@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"fmt"
+	"os"
 )
 
 const (
@@ -12,8 +13,40 @@ const (
 	keyLength int = 16
 )
 
+func EncryptFile(key []byte, clearFilePath, encryptedFilePath string) error {
+	clearData, err := os.ReadFile(clearFilePath)
+	if err != nil {
+		return fmt.Errorf("error while reading file '%s': %w", clearFilePath, err)
+	}
+	cryptData, err := Encrypt(key, clearData)
+	if err != nil {
+		return fmt.Errorf("error while encrypting file '%s': %w", clearFilePath, err)
+	}
+	err = os.WriteFile(encryptedFilePath, cryptData, 0444)
+	if err != nil {
+		return fmt.Errorf("error while writing encrypted file '%s': %w", encryptedFilePath, err)
+	}
+	return nil
+}
+
+func DecryptFile(key []byte, encryptedFilePath, clearFilePath string) error {
+	cryptData, err := os.ReadFile(encryptedFilePath)
+	if err != nil {
+		return fmt.Errorf("error while reading encrypted file '%s': %w", encryptedFilePath, err)
+	}
+	clearData, err := Decrypt(key, cryptData)
+	if err != nil {
+		return fmt.Errorf("error while decrypting file '%s': %w", clearFilePath, err)
+	}
+	err = os.WriteFile(clearFilePath, clearData, 0666)
+	if err != nil {
+		return fmt.Errorf("error while writing file '%s': %w", clearFilePath, err)
+	}
+	return nil
+}
+
 // Encrypt a text with a key
-func Encrypt(data, key []byte) ([]byte, error) {
+func Encrypt(key, data []byte) ([]byte, error) {
 	if len(key) != keyLength {
 		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), keyLength)
 	}
@@ -39,7 +72,7 @@ func Encrypt(data, key []byte) ([]byte, error) {
 }
 
 // Decrypt an encoded text with a key
-func Decrypt(encoded, key []byte) ([]byte, error) {
+func Decrypt(key, encoded []byte) ([]byte, error) {
 	if len(key) != keyLength {
 		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), keyLength)
 	}
