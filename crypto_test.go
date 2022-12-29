@@ -8,11 +8,12 @@ import (
 	"github.com/ejfhp/cryptem"
 )
 
+var password []byte = []byte("le sedicilettere")
+
 func TestCrypt_EncodeAndDecode(t *testing.T) {
 	sample := `Nel mezzo del cammin di nostra vita
 	mi ritrovai per una selva oscura,
 	ché la diritta via era smarrita.`
-	password := "le sedicilettere"
 	encoded, err := cryptem.Encrypt([]byte(password), []byte(sample))
 	if err != nil {
 		t.Fatalf("cannot encrypt: %v", err)
@@ -31,13 +32,16 @@ func TestCrypt_EncodeAndDecode(t *testing.T) {
 
 func TestCrypt_EncodeAndDecodeFile(t *testing.T) {
 	clear := "testdata/img.png"
-	password := "le sedicilettere"
-	err := cryptem.EncryptFile([]byte(password), clear, clear+".cry")
+	encrypted := "testdata/img.png" + cryptem.EncryptedExtension
+	decrypted := "testdata/img.png.dec"
+	os.Remove(encrypted)
+	os.Remove(decrypted)
+	err := cryptem.EncryptFile([]byte(password), clear, clear+cryptem.EncryptedExtension)
 	if err != nil {
 		t.Fatalf("cannot encrypt: %v", err)
 	}
 
-	err = cryptem.DecryptFile([]byte(password), clear+".cry", clear+".dec")
+	err = cryptem.DecryptFile([]byte(password), clear+cryptem.EncryptedExtension, clear+".dec")
 	if err != nil {
 		t.Fatalf("cannot decrypt: %v", err)
 	}
@@ -56,4 +60,6 @@ func TestCrypt_EncodeAndDecodeFile(t *testing.T) {
 			t.Fatalf("encrypt and decrypt of file has failed")
 		}
 	}
+	os.Remove(encrypted)
+	os.Remove(decrypted)
 }

@@ -22,7 +22,7 @@ func EncryptFile(key []byte, clearFilePath, encryptedFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("error while encrypting file '%s': %w", clearFilePath, err)
 	}
-	err = os.WriteFile(encryptedFilePath, cryptData, 0444)
+	err = os.WriteFile(encryptedFilePath, cryptData, 0600)
 	if err != nil {
 		return fmt.Errorf("error while writing encrypted file '%s': %w", encryptedFilePath, err)
 	}
@@ -38,7 +38,7 @@ func DecryptFile(key []byte, encryptedFilePath, clearFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("error while decrypting file '%s': %w", clearFilePath, err)
 	}
-	err = os.WriteFile(clearFilePath, clearData, 0666)
+	err = os.WriteFile(clearFilePath, clearData, 0600)
 	if err != nil {
 		return fmt.Errorf("error while writing file '%s': %w", clearFilePath, err)
 	}
