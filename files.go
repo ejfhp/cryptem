@@ -69,12 +69,7 @@ func Scan(key []byte, folder string, scanmode int, mode int, force int) error {
 	processedFilePath := ""
 	for _, ent := range entries {
 		if strings.HasPrefix(ent.Name(), ".") {
-			continue
-		}
-		if strings.HasSuffix(ent.Name(), EncryptedExtension) && mode == ModeEncrypt {
-			continue
-		}
-		if !strings.HasSuffix(ent.Name(), EncryptedExtension) && mode == ModeDecrypt {
+			// fmt.Printf("ignoring : %s\n", ent.Name())
 			continue
 		}
 		currentFilePath = filepath.Join(folder, ent.Name())
@@ -84,12 +79,25 @@ func Scan(key []byte, folder string, scanmode int, mode int, force int) error {
 				return fmt.Errorf("error while scanning '%s': %w", currentFilePath, err)
 			}
 		} else {
+			if strings.HasSuffix(ent.Name(), EncryptedExtension) && mode == ModeEncrypt {
+				// fmt.Printf("ignoring encrypted with mode encrypt: %s\n", ent.Name())
+				continue
+			}
+			if !strings.HasSuffix(ent.Name(), EncryptedExtension) && mode == ModeDecrypt {
+				// fmt.Printf("ignoring decrypted with mode decrypt: %s\n", ent.Name())
+				continue
+			}
 			fmt.Printf("Processing %s to ", currentFilePath)
 			processedFilePath, err = ProcessFile(key, currentFilePath, force)
 			if err != nil {
-				return fmt.Errorf("error while processing '%s': %w", currentFilePath, err)
+				if err == ErrFileExist {
+					fmt.Printf("File %s exists, ignored.", currentFilePath)
+				} else {
+					return fmt.Errorf("error while processing '%s': %w", currentFilePath, err)
+				}
+				continue
 			}
-			fmt.Printf("%s\n", processedFilePath)
+			fmt.Printf("%s.\n", processedFilePath)
 		}
 	}
 	return nil

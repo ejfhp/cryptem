@@ -3,7 +3,7 @@ package cryptem
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
 	"os"
 )
@@ -50,12 +50,16 @@ func Encrypt(key, data []byte) ([]byte, error) {
 	if len(key) != keyLength {
 		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), keyLength)
 	}
-	// Generate a 96-bit nonce using a CSPRNG.
+	//deterministic nonce to have the same encrypted data from different executions
 	nonce := make([]byte, nonceSize)
-	_, err := rand.Read(nonce)
-	if err != nil {
-		return nil, err
-	}
+	hash := sha256.Sum256(data)
+
+	copy(nonce, hash[:])
+
+	// _, err := rand.Read(nonce)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err

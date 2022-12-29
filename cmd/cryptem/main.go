@@ -60,8 +60,6 @@ func main() {
 		mode = cryptem.ModeDecrypt
 	}
 
-	fmt.Printf("Delete: %t\n", parDelete)
-
 	force := cryptem.ForceNothing
 	if parDelete && parOverwrite {
 		force = cryptem.ForceDeleteAndOverwrite
@@ -75,12 +73,42 @@ func main() {
 	if parRecursive {
 		scan = cryptem.ScanRecursive
 	}
-
+	printConfig(folder, scan, mode, force)
 	err := cryptem.Scan(password, folder, scan, mode, force)
 	if err != nil {
-		fmt.Printf("cryptem failed: %v\n\n", err)
+		fmt.Printf("\nERROR - cryptem failed: %v\n\n", err)
 	}
 
+}
+
+func printConfig(folder string, scanmode int, mode int, force int) {
+	fmt.Printf("Folder: %s\n", folder)
+	switch scanmode {
+	case cryptem.ScanLocal:
+		fmt.Printf("Scan: local\n")
+	case cryptem.ScanRecursive:
+		fmt.Printf("Scan: recursive\n")
+	default:
+		fmt.Printf("Scan: undefined\n")
+	}
+	switch mode {
+	case cryptem.ModeDecrypt:
+		fmt.Printf("Mode: decrypt\n")
+	case cryptem.ModeEncrypt:
+		fmt.Printf("Mode: encrypt\n")
+	default:
+		fmt.Printf("Mode: undefined\n")
+	}
+	switch force {
+	case cryptem.ForceDelete:
+		fmt.Printf("Force: delete\n")
+	case cryptem.ForceOverwrite:
+		fmt.Printf("Force: overwrite\n")
+	case cryptem.ForceDeleteAndOverwrite:
+		fmt.Printf("Force: delete and overwrite\n")
+	default:
+		fmt.Printf("Force: undefined\n")
+	}
 }
 
 // func isSet(name string) bool {

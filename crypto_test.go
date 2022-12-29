@@ -30,6 +30,28 @@ func TestCrypt_EncodeAndDecode(t *testing.T) {
 	}
 }
 
+//TODO Encoding has to be repeatable, same file encoded two times must be exactly the same
+func TestCrypt_VerifyEncoding(t *testing.T) {
+	sample := `Nel mezzo del cammin di nostra vita
+	mi ritrovai per una selva oscura,
+	ché la diritta via era smarrita.`
+	encoded1, err := cryptem.Encrypt([]byte(password), []byte(sample))
+	if err != nil {
+		t.Fatalf("cannot encrypt: %v", err)
+	}
+	encoded2, err := cryptem.Encrypt([]byte(password), []byte(sample))
+	if err != nil {
+		t.Fatalf("cannot encrypt: %v", err)
+	}
+	sum1 := sha256.Sum256(encoded1)
+	sum2 := sha256.Sum256(encoded2)
+	for i, b := range sum1 {
+		if b != sum2[i] {
+			t.Fatalf("not same sum")
+		}
+	}
+}
+
 func TestCrypt_EncodeAndDecodeFile(t *testing.T) {
 	clear := "testdata/img.png"
 	encrypted := "testdata/img.png" + cryptem.EncryptedExtension
