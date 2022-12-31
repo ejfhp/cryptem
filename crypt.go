@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"os"
 )
@@ -100,4 +101,24 @@ func Decrypt(key, encoded []byte) ([]byte, error) {
 		return nil, err
 	}
 	return text, nil
+}
+
+func CryptEncodeName(key []byte, name string) (string, error) {
+	cry, err := Encrypt(key, []byte(name))
+	if err != nil {
+		return "", fmt.Errorf("cannot encrypt name: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(cry[:]), nil
+}
+
+func CryptDecodeName(key []byte, name string) (string, error) {
+	dec, err := base64.URLEncoding.DecodeString(name)
+	if err != nil {
+		return "", fmt.Errorf("cannot decode name: %w", err)
+	}
+	decr, err := Decrypt(key, dec)
+	if err != nil {
+		return "", fmt.Errorf("cannot decrypt name: %w", err)
+	}
+	return string(decr), nil
 }

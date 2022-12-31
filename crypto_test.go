@@ -2,6 +2,7 @@ package cryptem_test
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"os"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 
 var password []byte = []byte("le sedicilettere")
 
-func TestCrypt_EncodeAndDecode(t *testing.T) {
+func TestCrypto_EncodeAndDecode(t *testing.T) {
 	sample := `Nel mezzo del cammin di nostra vita
 	mi ritrovai per una selva oscura,
 	ché la diritta via era smarrita.`
@@ -31,7 +32,7 @@ func TestCrypt_EncodeAndDecode(t *testing.T) {
 }
 
 //TODO Encoding has to be repeatable, same file encoded two times must be exactly the same
-func TestCrypt_VerifyEncoding(t *testing.T) {
+func TestCrypto_VerifyEncoding(t *testing.T) {
 	sample := `Nel mezzo del cammin di nostra vita
 	mi ritrovai per una selva oscura,
 	ché la diritta via era smarrita.`
@@ -52,7 +53,7 @@ func TestCrypt_VerifyEncoding(t *testing.T) {
 	}
 }
 
-func TestCrypt_EncodeAndDecodeFile(t *testing.T) {
+func TestCrypto_EncodeAndDecodeFile(t *testing.T) {
 	clear := "testdata/img.png"
 	encrypted := "testdata/img.png" + cryptem.EncryptedExtension
 	decrypted := "testdata/img.png.dec"
@@ -84,4 +85,21 @@ func TestCrypt_EncodeAndDecodeFile(t *testing.T) {
 	}
 	os.Remove(encrypted)
 	os.Remove(decrypted)
+}
+
+func TestCrypto_EncodeDecodeName(t *testing.T) {
+	name := "folder_name"
+	encoded, err := cryptem.CryptEncodeName(password, name)
+	if err != nil {
+		t.Fatalf("error encoding name: %v", err)
+	}
+	fmt.Printf("%s encoded to %s \n", name, encoded)
+	decoded, err := cryptem.CryptDecodeName(password, encoded)
+	if err != nil {
+		t.Fatalf("error decoding name: %v", err)
+	}
+	if name != decoded {
+		t.Fatalf("source '%s' and decoded '%s' don't match", name, decoded)
+
+	}
 }
