@@ -9,7 +9,7 @@ import (
 	"github.com/ejfhp/cryptem"
 )
 
-var password []byte = []byte("le sedicilettere")
+var password []byte = []byte("12345678901234567890123456789012")
 
 func TestCrypto_EncodeAndDecode(t *testing.T) {
 	sample := `Nel mezzo del cammin di nostra vita

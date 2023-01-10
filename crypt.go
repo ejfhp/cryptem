@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	nonceSize int = 12
-	keyLength int = 16
+	KeyLength int = 32
 )
 
 func EncryptFile(key []byte, clearFilePath, encryptedFilePath string) error {
@@ -48,14 +47,9 @@ func DecryptFile(key []byte, encryptedFilePath, clearFilePath string) error {
 
 // Encrypt a text with a key
 func Encrypt(key, data []byte) ([]byte, error) {
-	if len(key) != keyLength {
-		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), keyLength)
+	if len(key) != KeyLength {
+		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), KeyLength)
 	}
-	//deterministic nonce to have the same encrypted data from different executions
-	nonce := make([]byte, nonceSize)
-	hash := sha256.Sum256(data)
-
-	copy(nonce, hash[:])
 
 	// _, err := rand.Read(nonce)
 	// if err != nil {
@@ -69,8 +63,15 @@ func Encrypt(key, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	//deterministic nonce to have the same encrypted data from different executions
+	//NonceSize is 12
+	nonce := make([]byte, c.NonceSize())
+	hash := sha256.Sum256(data)
+	copy(nonce, hash[:])
+
 	enc := c.Seal(nil, nonce, data, nil)
-	encrypted := make([]byte, 0, len(enc)+nonceSize)
+	encrypted := make([]byte, 0, len(enc)+c.NonceSize())
 	encrypted = append(encrypted, nonce...)
 	encrypted = append(encrypted, enc...)
 	return encrypted, nil
@@ -78,15 +79,9 @@ func Encrypt(key, data []byte) ([]byte, error) {
 
 // Decrypt an encoded text with a key
 func Decrypt(key, encoded []byte) ([]byte, error) {
-	if len(key) != keyLength {
-		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), keyLength)
+	if len(key) != KeyLength {
+		return nil, fmt.Errorf("unexpected key length: %d must be %d", len(key), KeyLength)
 	}
-	// Create slices pointing to the ciphertext and nonce.
-	if len(encoded) < nonceSize {
-		return nil, fmt.Errorf("encrypted data shorter than nonce")
-	}
-	nonce := encoded[:nonceSize]
-	enc := encoded[nonceSize:]
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -95,6 +90,13 @@ func Decrypt(key, encoded []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Create slices pointing to the ciphertext and nonce.
+	if len(encoded) < c.NonceSize() {
+		return nil, fmt.Errorf("encrypted data shorter than nonce")
+	}
+	nonce := encoded[:c.NonceSize()]
+	enc := encoded[c.NonceSize():]
 	// Decrypt and return result.
 	text, err := c.Open(nil, nonce, enc, nil)
 	if err != nil {

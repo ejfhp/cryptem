@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"flag"
 	"fmt"
 
@@ -35,8 +36,8 @@ func printHelp() {
 }
 
 func main() {
-	flag.StringVar(&parPassword, flagPassword, "", "password to encrypt/decrypt files - 16 chars")
-	flag.StringVar(&parPassphrase, flagPassphrase, "", "passphrase to encrypt/decrypt files - hashed sha256")
+	flag.StringVar(&parPassword, flagPassword, "", "password to encrypt/decrypt files")
+	flag.StringVar(&parPassphrase, flagPassphrase, "", "passphrase to encrypt/decrypt files")
 	flag.StringVar(&parFolder, flagFolder, "", "folder to scan to encrypt/decrypt files")
 	flag.BoolVar(&parDelete, flagDelete, false, "delete clear files when encrypting, encrypted files when decrypting")
 	flag.BoolVar(&parOverwrite, flagOverwrite, false, "overwrite target file if exists")
@@ -60,14 +61,14 @@ func main() {
 	}
 	var password []byte
 	if len(parPassphrase) > 0 {
-		password = make([]byte, 16)
-		s := sha256.Sum256([]byte(parPassphrase))
-		copy(password, s[:16])
+		p := sha256.Sum256([]byte(parPassphrase))
+		fmt.Printf("HEX encoded derived AES password is: %s\n", hex.EncodeToString(p[:]))
+		password = p[:]
 	} else {
 		password = []byte(parPassword)
 	}
-	if len(password) != 16 {
-		fmt.Printf("AES password must be 16 chars long: %d\n", len(password))
+	if len(password) != cryptem.KeyLength {
+		fmt.Printf("AES password must be %d chars long: %d\n", cryptem.KeyLength, len(password))
 		return
 
 	}
