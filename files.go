@@ -72,6 +72,10 @@ func Scan(key []byte, folder string, scanmode int, mode int, force int) error {
 			// fmt.Printf("ignoring : %s\n", ent.Name())
 			continue
 		}
+		if strings.HasPrefix(ent.Name(), "NOENCRYPT") {
+			// fmt.Printf("ignoring : %s\n", ent.Name())
+			continue
+		}
 		currentFilePath = filepath.Join(folder, ent.Name())
 		if ent.IsDir() && scanmode == ScanRecursive {
 			err = Scan(key, currentFilePath, scanmode, mode, force)
